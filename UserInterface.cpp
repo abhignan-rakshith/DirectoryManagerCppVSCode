@@ -51,7 +51,7 @@ int UserInterface::getUserChoice()
 {
     std::cout << "Choose from below:" << std::endl;
     std::cout << "1. Create folder structure" << std::endl;
-    std::cout << "2. Copy files from root dir" << std::endl;
+    std::cout << "2. Copy template files to existing directories" << std::endl;
 
     std::string input;
     std::getline(std::cin, input);
@@ -83,7 +83,7 @@ void UserInterface::offerToCopyAfterCreation()
     }
 
     std::cout << "\nFinished creating the sub dir inside the stem dir provided..." << std::endl;
-    std::cout << "Does Player want to proceed with copying files from the root dir? (y/n): ";
+    std::cout << "Does Player want to proceed with copying template files? (y/n): ";
 
     std::string response;
     std::getline(std::cin, response);
@@ -98,12 +98,12 @@ void UserInterface::offerToCopyAfterCreation()
                 dirCopier = std::make_unique<DirectoryCopier>();
             }
 
-            // Copy files to the stem directory
-            bool success = dirCopier->copyFilesToSpecificStemDir(stemDir);
+            // Copy template files to the stem directory
+            bool success = dirCopier->copyTemplateFilesToSpecificStemDir(stemDir);
 
             if (success)
             {
-                std::cout << "Successfully copied the files into every sub directory of the stem dir!" << std::endl;
+                std::cout << "Successfully created template files in subdirectories of the stem dir!" << std::endl;
             }
         }
         catch (const std::exception &e)

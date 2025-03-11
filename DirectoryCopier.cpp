@@ -1,4 +1,5 @@
 #include "DirectoryCopier.h"
+#include "TemplateFiles.h"
 #include <iostream>
 #include <filesystem>
 
@@ -6,27 +7,22 @@ namespace fs = std::filesystem;
 
 DirectoryCopier::DirectoryCopier()
 {
-    // Validate that the root directory exists
-    if (!isValidDirectory(rootDir))
-    {
-        std::cerr << "Root directory does not exist: " << rootDir << std::endl;
-        throw std::runtime_error("Invalid root directory");
-    }
+    // No need to validate root directory anymore as we're using embedded templates
 }
 
 void DirectoryCopier::copyFilesToSubdirectories()
 {
-    std::cout << "\nNice! Let's copy files to subdirectories." << std::endl;
+    std::cout << "\nNice! Let's copy template files to subdirectories." << std::endl;
 
     // Get stem directory
     std::string stemDir = getValidDirectoryPath("Please paste the path to the stem dir: ");
     if (stemDir == "q")
         return;
 
-    copyFilesToSpecificStemDir(stemDir);
+    copyTemplateFilesToSpecificStemDir(stemDir);
 }
 
-bool DirectoryCopier::copyFilesToSpecificStemDir(const std::string &stemDir)
+bool DirectoryCopier::copyTemplateFilesToSpecificStemDir(const std::string &stemDir)
 {
     // Get all subdirectories
     std::vector<fs::path> subDirs = getAllSubdirectories(stemDir);
@@ -44,24 +40,29 @@ bool DirectoryCopier::copyFilesToSpecificStemDir(const std::string &stemDir)
     }
 
     // Confirm copy operation
-    std::cout << "\nCopy files from root directory to all subdirectories? (y/n): ";
+    std::cout << "\nCreate template files in all subdirectories? (y/n): ";
     std::string response;
     std::getline(std::cin, response);
 
     if (response != "y" && response != "Y")
     {
-        std::cout << "Copy operation canceled." << std::endl;
+        std::cout << "Operation canceled." << std::endl;
         return false;
     }
 
-    // Copy files to each subdirectory
+    // Copy template files to each subdirectory
+    int successCount = 0;
     for (const auto &subDir : subDirs)
     {
-        copyFiles(rootDir, subDir);
+        std::cout << "Processing: " << subDir.filename().string() << std::endl;
+        if (createTemplateFilesIn(subDir))
+        {
+            successCount++;
+        }
     }
 
-    std::cout << "Copy operation completed successfully!" << std::endl;
-    return true;
+    std::cout << "Template files created in " << successCount << " of " << subDirs.size() << " directories." << std::endl;
+    return successCount > 0;
 }
 
 std::vector<fs::path> DirectoryCopier::getAllSubdirectories(const std::string &stemDir)
@@ -86,47 +87,20 @@ std::vector<fs::path> DirectoryCopier::getAllSubdirectories(const std::string &s
     return subDirs;
 }
 
-void DirectoryCopier::copyFiles(const fs::path &sourceDir, const fs::path &destDir)
+bool DirectoryCopier::createTemplateFilesIn(const fs::path &destDir)
 {
-    std::cout << "Copying to: " << destDir.filename().string() << std::endl;
-
     try
     {
-        // Track progress
-        int filesCopied = 0;
-
-        for (const auto &entry : fs::recursive_directory_iterator(sourceDir))
+        bool success = TemplateFiles::createTemplateFilesIn(destDir);
+        if (success)
         {
-            // Calculate the destination path
-            fs::path relativePath = fs::relative(entry.path(), sourceDir);
-            fs::path targetPath = destDir / relativePath;
-
-            if (fs::is_directory(entry))
-            {
-                // Create directory if it doesn't exist
-                if (!fs::exists(targetPath))
-                {
-                    fs::create_directories(targetPath);
-                }
-            }
-            else if (fs::is_regular_file(entry))
-            {
-                // Create parent directory if needed
-                if (!fs::exists(targetPath.parent_path()))
-                {
-                    fs::create_directories(targetPath.parent_path());
-                }
-
-                // Copy the file
-                fs::copy_file(entry.path(), targetPath, fs::copy_options::overwrite_existing);
-                filesCopied++;
-            }
+            std::cout << "  Created " << TemplateFiles::getTemplateFileCount() << " template files." << std::endl;
         }
-
-        std::cout << "  Copied " << filesCopied << " files." << std::endl;
+        return success;
     }
-    catch (const fs::filesystem_error &e)
+    catch (const std::exception &e)
     {
-        std::cerr << "Error copying files: " << e.what() << std::endl;
+        std::cerr << "Error creating template files: " << e.what() << std::endl;
+        return false;
     }
 }

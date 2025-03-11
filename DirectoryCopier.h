@@ -11,19 +11,18 @@ namespace fs = std::filesystem;
 // Class for copying files to directories
 class DirectoryCopier : public DirectoryManager
 {
-private:
-    const std::string rootDir = "F:\\Dev\\My_Cpp-20\\Template_Win_Work";
-
 public:
     DirectoryCopier();
     void copyFilesToSubdirectories();
 
-    // Method to copy files to a specific stem directory
-    bool copyFilesToSpecificStemDir(const std::string &stemDir);
+    // Method to copy template files to a specific stem directory
+    bool copyTemplateFilesToSpecificStemDir(const std::string &stemDir);
 
 private:
     std::vector<fs::path> getAllSubdirectories(const std::string &stemDir);
-    void copyFiles(const fs::path &sourceDir, const fs::path &destDir);
+
+    // Method to copy template files to a destination directory
+    bool createTemplateFilesIn(const fs::path &destDir);
 };
 
 #endif // DIRECTORY_COPIER_H
