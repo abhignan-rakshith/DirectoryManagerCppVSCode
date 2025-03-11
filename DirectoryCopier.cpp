@@ -2,23 +2,20 @@
 #include "TemplateFiles.h"
 #include <iostream>
 #include <filesystem>
+#include <algorithm> // For std::count_if
 
 namespace fs = std::filesystem;
 
-DirectoryCopier::DirectoryCopier()
-{
-    // No need to validate root directory anymore as we're using embedded templates
-}
-
 void DirectoryCopier::copyFilesToSubdirectories()
 {
-    std::cout << "\nNice! Let's copy template files to subdirectories." << std::endl;
+    std::cout << "\nNice! Let's create template files in subdirectories." << std::endl;
 
     // Get stem directory
     std::string stemDir = getValidDirectoryPath("Please paste the path to the stem dir: ");
     if (stemDir == "q")
         return;
 
+    // Create template files in subdirectories
     copyTemplateFilesToSpecificStemDir(stemDir);
 }
 
@@ -33,13 +30,13 @@ bool DirectoryCopier::copyTemplateFilesToSpecificStemDir(const std::string &stem
     }
 
     // Display subdirectories
-    std::cout << "\nFound the following subdirectories:" << std::endl;
+    std::cout << "\nFound " << subDirs.size() << " subdirectories:" << std::endl;
     for (const auto &subDir : subDirs)
     {
         std::cout << "* " << subDir.filename().string() << std::endl;
     }
 
-    // Confirm copy operation
+    // Confirm operation
     std::cout << "\nCreate template files in all subdirectories? (y/n): ";
     std::string response;
     std::getline(std::cin, response);
@@ -50,8 +47,10 @@ bool DirectoryCopier::copyTemplateFilesToSpecificStemDir(const std::string &stem
         return false;
     }
 
-    // Copy template files to each subdirectory
+    // Create template files in each subdirectory
     int successCount = 0;
+    int totalFiles = TemplateFiles::getTemplateFileCount() * subDirs.size();
+
     for (const auto &subDir : subDirs)
     {
         std::cout << "Processing: " << subDir.filename().string() << std::endl;
@@ -61,7 +60,22 @@ bool DirectoryCopier::copyTemplateFilesToSpecificStemDir(const std::string &stem
         }
     }
 
-    std::cout << "Template files created in " << successCount << " of " << subDirs.size() << " directories." << std::endl;
+    // Report results
+    if (successCount == 0)
+    {
+        std::cout << "Failed to create template files in any directories." << std::endl;
+        return false;
+    }
+    else if (successCount < subDirs.size())
+    {
+        std::cout << "Template files created in " << successCount << " of " << subDirs.size()
+                  << " directories. Check error messages above." << std::endl;
+    }
+    else
+    {
+        std::cout << "Template files successfully created in all " << successCount << " directories." << std::endl;
+    }
+
     return successCount > 0;
 }
 
@@ -71,13 +85,30 @@ std::vector<fs::path> DirectoryCopier::getAllSubdirectories(const std::string &s
 
     try
     {
+        // Check if directory exists first
+        if (!fs::exists(stemDir))
+        {
+            std::cerr << "Error: Directory does not exist: " << stemDir << std::endl;
+            return subDirs;
+        }
+
+        // Iterate through directory entries
         for (const auto &entry : fs::directory_iterator(stemDir))
         {
+            // Only include directories (not files)
             if (fs::is_directory(entry))
             {
-                subDirs.push_back(entry.path());
+                // Skip hidden directories (starting with dot)
+                std::string filename = entry.path().filename().string();
+                if (!filename.empty() && filename[0] != '.')
+                {
+                    subDirs.push_back(entry.path());
+                }
             }
         }
+
+        // Sort directories by name for consistent results
+        std::sort(subDirs.begin(), subDirs.end());
     }
     catch (const fs::filesystem_error &e)
     {
@@ -91,16 +122,25 @@ bool DirectoryCopier::createTemplateFilesIn(const fs::path &destDir)
 {
     try
     {
+        // Create template files in destination directory
         bool success = TemplateFiles::createTemplateFilesIn(destDir);
+
+        // Report status
         if (success)
         {
-            std::cout << "  Created " << TemplateFiles::getTemplateFileCount() << " template files." << std::endl;
+            std::cout << "  Created " << TemplateFiles::getTemplateFileCount()
+                      << " template files successfully." << std::endl;
         }
+        else
+        {
+            std::cout << "  Some template files could not be created." << std::endl;
+        }
+
         return success;
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Error creating template files: " << e.what() << std::endl;
+        std::cerr << "  Error creating template files: " << e.what() << std::endl;
         return false;
     }
 }

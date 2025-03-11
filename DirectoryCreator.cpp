@@ -1,13 +1,13 @@
 #include "DirectoryCreator.h"
 #include <iostream>
 #include <filesystem>
+#include <iomanip> // For formatted output
 
 namespace fs = std::filesystem;
 
-// Add member variable initialization in the implementation file
-// or use a constructor if you prefer
 DirectoryCreator::DirectoryCreator() : lastStemDirectory("")
 {
+    // Initialize with empty string
 }
 
 void DirectoryCreator::createDirectoryStructure()
@@ -17,9 +17,9 @@ void DirectoryCreator::createDirectoryStructure()
     // Get stem directory
     std::string stemDir = getStemDirectory();
     if (stemDir == "q")
-        return;
+        return; // User wants to quit
 
-    // Store the stem directory for later use
+    // Store the stem directory for later reference
     lastStemDirectory = stemDir;
 
     // Get subdirectory names
@@ -86,6 +86,9 @@ std::vector<std::string> DirectoryCreator::getSubdirectoryNames()
     std::string input;
     int count = 1;
 
+    std::cout << "Enter subdirectory names. Each will be prefixed with a number." << std::endl;
+    std::cout << "For example: \"Number Systems\" becomes \"01 - Number Systems\"" << std::endl;
+
     while (true)
     {
         std::cout << "Enter the name of the next dir inside stem dir (or q to finish): ";
@@ -96,8 +99,19 @@ std::vector<std::string> DirectoryCreator::getSubdirectoryNames()
             break;
         }
 
-        names.push_back(input);
-        count++;
+        // Trim whitespace from input
+        input.erase(0, input.find_first_not_of(" \t\n\r\f\v"));
+        input.erase(input.find_last_not_of(" \t\n\r\f\v") + 1);
+
+        if (!input.empty())
+        {
+            names.push_back(input);
+            count++;
+        }
+        else
+        {
+            std::cout << "Name cannot be empty. Please try again." << std::endl;
+        }
     }
 
     return names;
@@ -105,6 +119,9 @@ std::vector<std::string> DirectoryCreator::getSubdirectoryNames()
 
 void DirectoryCreator::createSubdirectories(const std::string &stemDir, const std::vector<std::string> &subDirNames)
 {
+    // Display a summary of directories to be created
+    std::cout << "\nCreating " << subDirNames.size() << " directories inside " << stemDir << ":" << std::endl;
+
     for (size_t i = 0; i < subDirNames.size(); ++i)
     {
         // Format the directory name: "01 - Name", "02 - Name", etc.
@@ -122,11 +139,11 @@ void DirectoryCreator::createSubdirectories(const std::string &stemDir, const st
         try
         {
             fs::create_directories(fullPath);
-            std::cout << "Created: " << fullPath << std::endl;
+            std::cout << "  Created: " << fullPath.filename().string() << std::endl;
         }
         catch (const fs::filesystem_error &e)
         {
-            std::cerr << "Error creating directory: " << e.what() << std::endl;
+            std::cerr << "  Error creating directory: " << e.what() << std::endl;
         }
     }
 }

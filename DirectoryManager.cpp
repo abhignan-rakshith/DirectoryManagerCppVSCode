@@ -7,8 +7,10 @@ namespace fs = std::filesystem;
 
 std::string DirectoryManager::cleanPath(const std::string &path) const
 {
+    // Check if path is enclosed in quotes
     if (path.length() >= 2 && (path.front() == '"' && path.back() == '"'))
     {
+        // Return path without first and last character (the quotes)
         return path.substr(1, path.length() - 2);
     }
     return path;
@@ -19,6 +21,7 @@ bool DirectoryManager::isValidDirectory(const std::string &path) const
     std::string cleanedPath = cleanPath(path);
     try
     {
+        // Check if path exists and is a directory
         return fs::exists(cleanedPath) && fs::is_directory(cleanedPath);
     }
     catch (const fs::filesystem_error &e)
@@ -33,6 +36,7 @@ std::string DirectoryManager::getValidDirectoryPath(const std::string &prompt) c
     std::string path;
     bool isValid = false;
 
+    // Keep asking until we get a valid path or user quits
     while (!isValid)
     {
         std::cout << prompt;
@@ -44,6 +48,7 @@ std::string DirectoryManager::getValidDirectoryPath(const std::string &prompt) c
             return "q";
         }
 
+        // Clean the path and validate
         path = cleanPath(path);
 
         if (isValidDirectory(path))

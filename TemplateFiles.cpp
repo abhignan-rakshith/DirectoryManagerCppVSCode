@@ -5,8 +5,15 @@
 
 namespace fs = std::filesystem;
 
-// Define the template file contents as string literals
-const std::string TemplateFiles::MAIN_CPP = R"(#include <iostream>
+// Get all template files with their content and location
+std::vector<TemplateFiles::TemplateFile> TemplateFiles::getAllTemplateFiles()
+{
+    // Define all template files in a vector for easier maintenance
+    std::vector<TemplateFile> files = {
+        // Main.cpp in root directory
+        {
+            "main.cpp",
+            R"(#include <iostream>
 
 consteval int get_value()
 {
@@ -18,9 +25,14 @@ int main()
     constexpr int value = get_value();
     std::cout << "value : " << value << std::endl;
     return 0;
-})";
+})",
+            "" // Empty subdirectory means root
+        },
 
-const std::string TemplateFiles::CPP_PROPERTIES_JSON = R"({
+        // c_cpp_properties.json in .vscode subdirectory
+        {
+            "c_cpp_properties.json",
+            R"({
     "configurations": [
         {
             "name": "Win32",
@@ -40,9 +52,13 @@ const std::string TemplateFiles::CPP_PROPERTIES_JSON = R"({
         }
     ],
     "version": 4
-})";
+})",
+            ".vscode"},
 
-const std::string TemplateFiles::TASKS_JSON = R"({
+        // tasks.json in .vscode subdirectory
+        {
+            "tasks.json",
+            R"({
 	"version": "2.0.0",
 	"tasks": [
 		{
@@ -107,43 +123,56 @@ const std::string TemplateFiles::TASKS_JSON = R"({
 			"detail": "compiler: C:\\mingw64\\bin\\clang++.exe"
 		}
 	]
-})";
+})",
+            ".vscode"}};
+
+    return files;
+}
 
 bool TemplateFiles::createTemplateFilesIn(const fs::path &targetDir)
 {
     try
     {
+        // Get all template files
+        std::vector<TemplateFile> files = getAllTemplateFiles();
+
         // Ensure the target directory exists
         if (!createDirectoryIfNeeded(targetDir))
         {
             return false;
         }
 
-        // Create main.cpp in the target directory
-        if (!createFile(targetDir / "main.cpp", MAIN_CPP))
+        // Create all template files
+        bool allSuccessful = true;
+        for (const auto &file : files)
         {
-            return false;
+            // Determine the full path for the file
+            fs::path filePath;
+            if (file.subdirectory.empty())
+            {
+                // File goes in the root directory
+                filePath = targetDir / file.filename;
+            }
+            else
+            {
+                // File goes in a subdirectory
+                fs::path subDir = targetDir / file.subdirectory;
+                if (!createDirectoryIfNeeded(subDir))
+                {
+                    allSuccessful = false;
+                    continue;
+                }
+                filePath = subDir / file.filename;
+            }
+
+            // Create the file
+            if (!createFile(filePath, file.content))
+            {
+                allSuccessful = false;
+            }
         }
 
-        // Create .vscode directory
-        fs::path vscodeDir = targetDir / ".vscode";
-        if (!createDirectoryIfNeeded(vscodeDir))
-        {
-            return false;
-        }
-
-        // Create configuration files in .vscode directory
-        if (!createFile(vscodeDir / "c_cpp_properties.json", CPP_PROPERTIES_JSON))
-        {
-            return false;
-        }
-
-        if (!createFile(vscodeDir / "tasks.json", TASKS_JSON))
-        {
-            return false;
-        }
-
-        return true;
+        return allSuccessful;
     }
     catch (const std::exception &e)
     {
@@ -154,14 +183,14 @@ bool TemplateFiles::createTemplateFilesIn(const fs::path &targetDir)
 
 int TemplateFiles::getTemplateFileCount()
 {
-    // Currently we have 3 template files
-    return 3;
+    return getAllTemplateFiles().size();
 }
 
 bool TemplateFiles::createFile(const fs::path &filePath, const std::string &content)
 {
     try
     {
+        // Open file for writing
         std::ofstream file(filePath, std::ios::out);
         if (!file)
         {
@@ -169,6 +198,7 @@ bool TemplateFiles::createFile(const fs::path &filePath, const std::string &cont
             return false;
         }
 
+        // Write content to file
         file << content;
         file.close();
 
@@ -186,6 +216,7 @@ bool TemplateFiles::createDirectoryIfNeeded(const fs::path &dirPath)
 {
     try
     {
+        // Create directory if it doesn't exist
         if (!fs::exists(dirPath))
         {
             if (!fs::create_directories(dirPath))

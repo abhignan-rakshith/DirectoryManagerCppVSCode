@@ -6,17 +6,37 @@
 
 namespace fs = std::filesystem;
 
-// Base class for directory operations
+/**
+ * @brief Base class for directory operations
+ *
+ * DirectoryManager serves as a base class providing common functionality
+ * for directory manipulation and validation throughout the application.
+ */
 class DirectoryManager
 {
 protected:
-    // Utility function to clean paths with quotation marks
+    /**
+     * @brief Removes quotation marks from paths if present
+     *
+     * @param path The path string that might contain quotation marks
+     * @return std::string The cleaned path without quotation marks
+     */
     std::string cleanPath(const std::string &path) const;
 
-    // Validate if a path is a valid directory
+    /**
+     * @brief Checks if a path is a valid directory
+     *
+     * @param path The path to validate
+     * @return bool True if the path exists and is a directory
+     */
     bool isValidDirectory(const std::string &path) const;
 
-    // Get a valid directory path from user
+    /**
+     * @brief Gets a valid directory path from user with validation
+     *
+     * @param prompt The message to display to the user
+     * @return std::string The validated directory path or "q" if user wants to quit
+     */
     std::string getValidDirectoryPath(const std::string &prompt) const;
 };
 
