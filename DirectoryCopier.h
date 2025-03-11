@@ -18,6 +18,9 @@ public:
     DirectoryCopier();
     void copyFilesToSubdirectories();
 
+    // Method to copy files to a specific stem directory
+    bool copyFilesToSpecificStemDir(const std::string &stemDir);
+
 private:
     std::vector<fs::path> getAllSubdirectories(const std::string &stemDir);
     void copyFiles(const fs::path &sourceDir, const fs::path &destDir);

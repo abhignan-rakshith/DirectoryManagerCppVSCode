@@ -20,6 +20,7 @@ private:
     void displayWelcome();
     int getUserChoice();
     void displayGoodbye();
+    void offerToCopyAfterCreation();
 };
 
 #endif // USER_INTERFACE_H

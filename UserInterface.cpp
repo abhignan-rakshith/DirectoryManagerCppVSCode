@@ -17,6 +17,7 @@ void UserInterface::run()
     {
     case 1:
         dirCreator->createDirectoryStructure();
+        offerToCopyAfterCreation();
         break;
     case 2:
         try
@@ -68,4 +69,50 @@ int UserInterface::getUserChoice()
 void UserInterface::displayGoodbye()
 {
     std::cout << "\nBye!" << std::endl;
+}
+
+void UserInterface::offerToCopyAfterCreation()
+{
+    // Get the stem directory that was just created
+    std::string stemDir = dirCreator->getLastStemDirectory();
+
+    // If no stem directory was created (e.g., user quit), return
+    if (stemDir.empty() || stemDir == "q")
+    {
+        return;
+    }
+
+    std::cout << "\nFinished creating the sub dir inside the stem dir provided..." << std::endl;
+    std::cout << "Does Player want to proceed with copying files from the root dir? (y/n): ";
+
+    std::string response;
+    std::getline(std::cin, response);
+
+    if (response == "y" || response == "Y")
+    {
+        try
+        {
+            // Create the DirectoryCopier if it doesn't exist
+            if (!dirCopier)
+            {
+                dirCopier = std::make_unique<DirectoryCopier>();
+            }
+
+            // Copy files to the stem directory
+            bool success = dirCopier->copyFilesToSpecificStemDir(stemDir);
+
+            if (success)
+            {
+                std::cout << "Successfully copied the files into every sub directory of the stem dir!" << std::endl;
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
+    }
+    else
+    {
+        std::cout << "Ok, I won't do that." << std::endl;
+    }
 }

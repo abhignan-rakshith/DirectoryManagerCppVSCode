@@ -4,6 +4,12 @@
 
 namespace fs = std::filesystem;
 
+// Add member variable initialization in the implementation file
+// or use a constructor if you prefer
+DirectoryCreator::DirectoryCreator() : lastStemDirectory("")
+{
+}
+
 void DirectoryCreator::createDirectoryStructure()
 {
     std::cout << "\nCool!, let's create the dir tree!" << std::endl;
@@ -12,6 +18,9 @@ void DirectoryCreator::createDirectoryStructure()
     std::string stemDir = getStemDirectory();
     if (stemDir == "q")
         return;
+
+    // Store the stem directory for later use
+    lastStemDirectory = stemDir;
 
     // Get subdirectory names
     std::vector<std::string> subDirNames = getSubdirectoryNames();
@@ -25,6 +34,11 @@ void DirectoryCreator::createDirectoryStructure()
     createSubdirectories(stemDir, subDirNames);
 
     std::cout << "Directory structure created successfully!" << std::endl;
+}
+
+std::string DirectoryCreator::getLastStemDirectory() const
+{
+    return lastStemDirectory;
 }
 
 std::string DirectoryCreator::getStemDirectory()

@@ -8,8 +8,14 @@
 // Class for creating directory structure
 class DirectoryCreator : public DirectoryManager
 {
+private:
+    std::string lastStemDirectory; // Store the last stem directory path
+
 public:
+    DirectoryCreator(); // Constructor
     void createDirectoryStructure();
+    // Returns the stem directory path after creation is complete
+    std::string getLastStemDirectory() const;
 
 private:
     std::string getStemDirectory();

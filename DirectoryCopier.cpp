@@ -23,12 +23,17 @@ void DirectoryCopier::copyFilesToSubdirectories()
     if (stemDir == "q")
         return;
 
+    copyFilesToSpecificStemDir(stemDir);
+}
+
+bool DirectoryCopier::copyFilesToSpecificStemDir(const std::string &stemDir)
+{
     // Get all subdirectories
     std::vector<fs::path> subDirs = getAllSubdirectories(stemDir);
     if (subDirs.empty())
     {
         std::cout << "No subdirectories found in the stem directory." << std::endl;
-        return;
+        return false;
     }
 
     // Display subdirectories
@@ -46,7 +51,7 @@ void DirectoryCopier::copyFilesToSubdirectories()
     if (response != "y" && response != "Y")
     {
         std::cout << "Copy operation canceled." << std::endl;
-        return;
+        return false;
     }
 
     // Copy files to each subdirectory
@@ -56,6 +61,7 @@ void DirectoryCopier::copyFilesToSubdirectories()
     }
 
     std::cout << "Copy operation completed successfully!" << std::endl;
+    return true;
 }
 
 std::vector<fs::path> DirectoryCopier::getAllSubdirectories(const std::string &stemDir)
