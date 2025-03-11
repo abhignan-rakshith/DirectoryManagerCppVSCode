@@ -16,6 +16,15 @@ class DirectoryCreator : public DirectoryManager
 private:
     std::string lastStemDirectory; // Stores the most recently created stem directory path
 
+private:
+    /**
+     * @brief Sanitizes a directory name by removing invalid characters
+     *
+     * @param dirName Directory name to sanitize
+     * @return std::string Sanitized directory name
+     */
+    std::string slugifyDirectoryName(const std::string &dirName);
+
 public:
     /**
      * @brief Constructor initializes the lastStemDirectory
@@ -59,6 +68,21 @@ private:
      * @param subDirNames List of subdirectory names
      */
     void createSubdirectories(const std::string &stemDir, const std::vector<std::string> &subDirNames);
+
+    /**
+     * @brief Parses a markdown file to extract directory structure
+     *
+     * @param markdownPath Path to the markdown file
+     * @return std::vector<std::string> List of subdirectory names extracted from markdown
+     */
+    std::vector<std::string> parseMarkdownFile(const std::string &markdownPath);
+
+    /**
+     * @brief Gets directory structure from a markdown file
+     *
+     * @return std::pair<std::string, std::vector<std::string>> Stem directory name and subdirectory names
+     */
+    std::pair<std::string, std::vector<std::string>> getDirectoryStructureFromMarkdown();
 };
 
 #endif // DIRECTORY_CREATOR_H
